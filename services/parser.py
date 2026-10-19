@@ -182,7 +182,12 @@ def find_answer_file(paper):
 def render_html(data):
     with open(TEMPLATE, encoding="utf-8") as f:
         html = f.read()
-    return html.replace("/*__QUIZ_DATA__*/", json.dumps(data, ensure_ascii=False))
+    payload = json.dumps(data, ensure_ascii=False)
+    # 防 XSS：JSON 嵌入 <script> 时，转义 < > & 防止 </script> 逃逸
+    payload = (payload.replace("<", "\\u003c")
+                      .replace(">", "\\u003e")
+                      .replace("&", "\\u0026"))
+    return html.replace("/*__QUIZ_DATA__*/", payload)
 
 def convert(paper_text, ans_text, title, subtitle="", source=""):
     """把试卷文字(+答案文字)转成完整的 quiz data dict。"""

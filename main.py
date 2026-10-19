@@ -164,8 +164,12 @@ def practice(subject: str = "", uid: int = Depends(auth.get_current_user)):
 # ---------- 静态 ----------
 @app.get("/quiz/{path:path}")
 def quiz(path: str, uid: int = Depends(auth.get_current_user)):
-    fp = os.path.join(user_dir(uid), path)
-    if not fp.endswith(".html") or not os.path.exists(fp):
+    base = os.path.realpath(user_dir(uid))
+    fp = os.path.realpath(os.path.join(base, path))
+    # 防止路径穿越：必须在用户自己的目录内，且只允许 .html
+    if (not fp.endswith(".html")
+            or not fp.startswith(base + os.sep)
+            or not os.path.exists(fp)):
         raise HTTPException(404, "题目不存在")
     return FileResponse(fp)
 

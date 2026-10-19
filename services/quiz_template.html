@@ -178,21 +178,21 @@ function renderQuiz() {
           else cls += " dim";
         }
         return `<div class="opt ${cls}" onclick="pick(${i},'${key}')">
-                  <span class="key">${key}</span><span class="txt">${t}</span></div>`;
+                  <span class="key">${key}</span><span class="txt">${escapeHtml(t)}</span></div>`;
       }).join("");
       const correct = answers[i] === item.ans;
       const expCls = isShown(i) && !correct ? "explain wrong-x" : "explain";
-      const ansTip = isShown(i) ? `<b class="ans">正确答案 ${item.ans}</b>　` : "";
+      const ansTip = isShown(i) ? `<b class="ans">正确答案 ${escapeHtml(item.ans)}</b>　` : "";
       return `<div class="qcard" id="q${i}">${head}
-        <p class="qtext">${i+1}. ${item.q}</p>
+        <p class="qtext">${i+1}. ${escapeHtml(item.q)}</p>
         <div class="opts">${opts}</div>
-        <div class="${expCls}" ${isShown(i) ? 'style="display:block"' : ''}>${ansTip}${item.x||""}</div>
+        <div class="${expCls}" ${isShown(i) ? 'style="display:block"' : ''}>${ansTip}${escapeHtml(item.x||"")}</div>
       </div>`;
     } else {
       const revealId = `ans${i}`;
       return `<div class="qcard" id="q${i}">${head}
-        <p class="qtext">${i+1}. ${item.q}</p>
-        <textarea class="sub" placeholder="在此输入你的答案…" oninput="onSub(${i},this.value)">${answers[i]||""}</textarea>
+        <p class="qtext">${i+1}. ${escapeHtml(item.q)}</p>
+        <textarea class="sub" placeholder="在此输入你的答案…" oninput="onSub(${i},this.value)">${escapeHtml(answers[i]||"")}</textarea>
         <div class="reveal">
           <button class="mini-btn" onclick="toggleAns('${revealId}')">显示参考答案</button>
           <div class="ansbox" id="${revealId}">${escapeHtml(item.ans||"")}</div>

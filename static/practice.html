@@ -143,11 +143,11 @@ function renderQuiz(){
         else if (answers[i] === key) cls += " wrong";
         else cls += " dim";
       }
-      return `<div class="opt ${cls}" onclick="pick(${i},'${key}')"><span class="key">${key}</span><span class="txt">${t}</span></div>`;
+      return `<div class="opt ${cls}" onclick="pick(${i},'${key}')"><span class="key">${key}</span><span class="txt">${esc(t)}</span></div>`;
     }).join("");
     const correct = answers[i] === it.ans;
     const expCls = isShown(i) && !correct ? "explain wrong-x" : "explain";
-    const ansTip = isShown(i) ? `<b>正确答案 ${it.ans || "?"}</b>` : "";
+    const ansTip = isShown(i) ? `<b>正确答案 ${esc(it.ans || "?")}</b>` : "";
     const expTxt = (it.x && it.x !== "未识别答案") ? `<div style="margin-top:5px;">${esc(it.x)}</div>` : "";
     return `<div class="qcard">
       <div class="qhead"><span class="qnum">${i+1}</span><span class="qtext" style="margin:0;">${esc(it.q)}</span></div>

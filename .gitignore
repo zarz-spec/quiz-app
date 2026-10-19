@@ -1,0 +1,15 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# 数据（题库、用户数据库，运行时生成，不提交）
+data/
+
+# macOS 编译产物（OCR 二进制，仅本机可用）
+services/ocr
+
+# 系统文件
+.DS_Store
+*.log

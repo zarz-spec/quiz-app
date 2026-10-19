@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在线刷题</title>
+<style>
+  :root {
+    --bg:#f4f5f7; --card:#fff; --ink:#1f2328; --muted:#6b7280; --line:#e5e7eb;
+    --brand:#c0392b; --brand-soft:#fdecea;
+    --correct:#1a7f37; --correct-bg:#e8f5ec; --wrong:#c0392b; --wrong-bg:#fdecea;
+    --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+         background:var(--bg); color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:760px; margin:0 auto; padding:20px 16px 64px; }
+
+  header.top { background:linear-gradient(135deg,#c0392b,#8e2418); color:#fff; border-radius:16px;
+               padding:22px 20px; box-shadow:var(--shadow); margin-bottom:16px; }
+  header.top h1 { margin:0 0 4px; font-size:22px; font-weight:700; }
+  header.top .sub { opacity:.92; font-size:13px; }
+  header.top .badges { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+  header.top .badge { font-size:12px; padding:3px 10px; border-radius:999px;
+                      background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.28); }
+
+  .statsbar { position:sticky; top:8px; z-index:20; background:var(--card); border:1px solid var(--line);
+              border-radius:14px; box-shadow:var(--shadow); padding:12px 16px;
+              display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .statsbar .stat { text-align:center; flex:1; }
+  .statsbar .num { font-size:20px; font-weight:700; color:var(--brand); line-height:1.1; }
+  .statsbar .lbl { font-size:12px; color:var(--muted); }
+  .statsbar .bar-wrap { flex:2; min-width:90px; }
+  .statsbar .bar { height:8px; background:#eef0f3; border-radius:999px; overflow:hidden; }
+  .statsbar .bar i { display:block; height:100%; background:var(--brand); width:0; transition:width .25s; border-radius:999px; }
+  .statsbar .bar-txt { font-size:11px; color:var(--muted); margin-top:4px; }
+
+  .qcard { background:var(--card); border:1px solid var(--line); border-radius:14px;
+           padding:16px 16px 14px; margin-bottom:12px; box-shadow:var(--shadow); }
+  .qhead { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .qnum { flex:none; width:28px; height:28px; border-radius:8px; background:var(--brand-soft); color:var(--brand);
+          font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; }
+  .qtag { font-size:11px; color:var(--muted); background:#f0f1f3; padding:2px 8px; border-radius:999px; }
+  .qtype { font-size:11px; color:var(--brand); background:var(--brand-soft); padding:2px 8px; border-radius:999px; font-weight:600; }
+  .qtext { font-size:16px; margin:0 0 12px; font-weight:500; }
+  .opts { display:flex; flex-direction:column; gap:8px; }
+  .opt { display:flex; align-items:flex-start; gap:10px; border:1.5px solid var(--line); border-radius:10px;
+         padding:9px 12px; cursor:pointer; user-select:none; transition:border-color .12s,background .12s; }
+  .opt:hover { border-color:#c9ccd1; background:#fafafa; }
+  .opt .key { flex:none; width:22px; height:22px; border-radius:6px; background:#eef0f3; color:var(--muted);
+              font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  .opt .txt { font-size:15px; }
+  .opt.selected { border-color:var(--brand); background:var(--brand-soft); }
+  .opt.selected .key { background:var(--brand); color:#fff; }
+  .opt.correct { border-color:var(--correct); background:var(--correct-bg); }
+  .opt.correct .key { background:var(--correct); color:#fff; }
+  .opt.wrong { border-color:var(--wrong); background:var(--wrong-bg); }
+  .opt.wrong .key { background:var(--wrong); color:#fff; }
+  .opt.dim { opacity:.5; }
+
+  .explain { margin-top:10px; padding:10px 12px; border-radius:10px; background:#f6f8fa;
+             border-left:3px solid var(--correct); font-size:13.5px; color:#374151; display:none; }
+  .explain b.ans { color:var(--correct); }
+  .explain.wrong-x { border-left-color:var(--wrong); }
+
+  textarea.sub { width:100%; min-height:90px; border:1.5px solid var(--line); border-radius:10px;
+                 padding:10px 12px; font-size:15px; font-family:inherit; resize:vertical; }
+  textarea.sub:focus { outline:none; border-color:var(--brand); }
+  .reveal { margin-top:10px; }
+  .reveal .ansbox { display:none; margin-top:10px; padding:12px 14px; border-radius:10px; background:#f6f8fa;
+                    border-left:3px solid var(--brand); font-size:14px; white-space:pre-wrap; color:#374151; }
+  .reveal .ansbox.show { display:block; }
+  .mini-btn { border:1px solid var(--line); background:#fff; color:var(--brand); border-radius:8px;
+              padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .mini-btn:active { transform:scale(.97); }
+
+  .actions { position:sticky; bottom:8px; z-index:20; display:flex; gap:10px; margin-top:16px; }
+  .btn { flex:1; border:none; border-radius:12px; padding:14px 16px; font-size:16px; font-weight:600;
+         cursor:pointer; font-family:inherit; transition:transform .05s,opacity .12s; }
+  .btn:active { transform:scale(.98); }
+  .btn.primary { background:var(--brand); color:#fff; box-shadow:0 4px 12px rgba(192,57,43,.28); }
+  .btn.ghost { background:#fff; color:var(--ink); border:1.5px solid var(--line); }
+
+  .result { background:var(--card); border:1px solid var(--line); border-radius:16px;
+            box-shadow:0 8px 30px rgba(16,24,40,.14); padding:22px 20px; margin-bottom:16px; text-align:center; }
+  .result .score { font-size:46px; font-weight:800; color:var(--brand); line-height:1; }
+  .result .score small { font-size:18px; color:var(--muted); font-weight:600; }
+  .result .verdict { font-size:15px; margin:8px 0 4px; font-weight:600; }
+  .result .sub { color:var(--muted); font-size:13px; }
+  .result .rows { display:flex; gap:10px; margin-top:14px; }
+  .result .row { flex:1; background:#f6f8fa; border-radius:10px; padding:10px; }
+  .result .row .n { font-size:20px; font-weight:700; }
+  .result .row.good .n { color:var(--correct); }
+  .result .row.bad .n { color:var(--wrong); }
+  .result .row .l { font-size:12px; color:var(--muted); }
+
+  .fadein { animation:fade .3s ease; }
+  @keyframes fade { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:none;} }
+  footer.note { text-align:center; color:var(--muted); font-size:12px; margin-top:20px; }
+  .instant-toggle { margin-top:10px; border:1px solid rgba(255,255,255,.5); background:rgba(255,255,255,.15);
+    color:#fff; border-radius:999px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 id="title"></h1>
+    <div class="sub" id="subtitle"></div>
+    <div class="badges">
+      <span class="badge">客观题自动判分</span>
+      <span class="badge">错题带解析</span>
+      <span class="badge">可反复刷</span>
+    </div>
+    <button class="instant-toggle" id="instantBtn" onclick="toggleInstant()">⚡ 即时判分：开</button>
+  </header>
+
+  <div class="statsbar">
+    <div class="stat"><div class="num" id="answeredNum">0</div><div class="lbl">已答</div></div>
+    <div class="stat"><div class="num" id="correctNum">-</div><div class="lbl">得分</div></div>
+    <div class="bar-wrap">
+      <div class="bar"><i id="progressBar"></i></div>
+      <div class="bar-txt" id="progressTxt"></div>
+    </div>
+  </div>
+
+  <div id="resultBox"></div>
+  <div id="quiz"></div>
+
+  <div class="actions">
+    <button class="btn ghost" onclick="resetQuiz()">清空重做</button>
+    <button class="btn primary" onclick="submitQuiz()">提交判分</button>
+  </div>
+
+  <footer class="note" id="footnote"></footer>
+</div>
+
+<script>
+const QUIZ = /*__QUIZ_DATA__*/;
+
+const LETTERS = "ABCDEFGH";
+let answers = {};   // index -> 选中项 ("A"..) 或 主观题文本
+let graded = false;
+let revealed = {};  // 即时判分：已揭晓的题
+let instant = true;
+
+const mcqList = QUIZ.questions.map((it,i) => ({...it, idx:i})).filter(it => it.type === "mcq");
+const totalMcq = mcqList.length;
+const perScore = QUIZ.pointsPerQuestion || 2;
+const fullScore = QUIZ.fullScore || (totalMcq * perScore);
+
+function isAnswered(i) {
+  if (QUIZ.questions[i].type === "mcq") return !!answers[i];
+  return !!answers[i] && answers[i].trim() !== "";
+}
+function answeredCount() {
+  return QUIZ.questions.reduce((n,_,i) => n + (isAnswered(i) ? 1 : 0), 0);
+}
+
+function renderQuiz() {
+  document.getElementById("title").textContent = QUIZ.title;
+  document.getElementById("subtitle").textContent = QUIZ.subtitle || "";
+  document.getElementById("footnote").textContent = QUIZ.source || "";
+
+  const root = document.getElementById("quiz");
+  root.innerHTML = QUIZ.questions.map((item, i) => {
+    const head = `<div class="qhead"><span class="qnum">${i+1}</span>
+      <span class="qtype">${item.type === "mcq" ? "选择题" : "主观题"}</span>
+      ${item.tag ? `<span class="qtag">${item.tag}</span>` : ""}</div>`;
+
+    if (item.type === "mcq") {
+      const opts = item.opts.map((t, j) => {
+        const key = LETTERS[j];
+        let cls = "opt";
+        if (answers[i] === key) cls += " selected";
+        if (isShown(i)) {
+          if (key === item.ans) cls += " correct";
+          else if (answers[i] === key) cls += " wrong";
+          else cls += " dim";
+        }
+        return `<div class="opt ${cls}" onclick="pick(${i},'${key}')">
+                  <span class="key">${key}</span><span class="txt">${t}</span></div>`;
+      }).join("");
+      const correct = answers[i] === item.ans;
+      const expCls = isShown(i) && !correct ? "explain wrong-x" : "explain";
+      const ansTip = isShown(i) ? `<b class="ans">正确答案 ${item.ans}</b>　` : "";
+      return `<div class="qcard" id="q${i}">${head}
+        <p class="qtext">${i+1}. ${item.q}</p>
+        <div class="opts">${opts}</div>
+        <div class="${expCls}" ${isShown(i) ? 'style="display:block"' : ''}>${ansTip}${item.x||""}</div>
+      </div>`;
+    } else {
+      const revealId = `ans${i}`;
+      return `<div class="qcard" id="q${i}">${head}
+        <p class="qtext">${i+1}. ${item.q}</p>
+        <textarea class="sub" placeholder="在此输入你的答案…" oninput="onSub(${i},this.value)">${answers[i]||""}</textarea>
+        <div class="reveal">
+          <button class="mini-btn" onclick="toggleAns('${revealId}')">显示参考答案</button>
+          <div class="ansbox" id="${revealId}">${escapeHtml(item.ans||"")}</div>
+        </div>
+      </div>`;
+    }
+  }).join("");
+  updateStats();
+}
+
+function escapeHtml(s) { return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+function isShown(i) { return graded || !!revealed[i]; }
+function pick(i, key) {
+  if (graded || revealed[i]) return;
+  answers[i] = answers[i] === key ? undefined : key;
+  if (instant && answers[i]) revealed[i] = true;   // 选完立即判对错
+  renderQuiz();
+}
+function toggleInstant() {
+  instant = !instant;
+  document.getElementById("instantBtn").textContent = instant ? "⚡ 即时判分：开" : "⚡ 即时判分：关";
+  if (!instant) revealed = {};
+  renderQuiz();
+}
+function onSub(i, val) {
+  answers[i] = val;
+  updateStats();
+}
+function toggleAns(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle("show");
+}
+
+function updateStats() {
+  const answered = answeredCount();
+  document.getElementById("answeredNum").textContent = answered;
+  document.getElementById("progressBar").style.width = (answered / QUIZ.questions.length * 100) + "%";
+  document.getElementById("progressTxt").textContent = `完成度 ${answered} / ${QUIZ.questions.length}`;
+  const cn = document.getElementById("correctNum");
+  if (graded || instant) cn.textContent = currentScore() + "分";
+  else cn.textContent = "-";
+}
+
+function currentScore() {
+  return mcqList.reduce((n, it) => n + (answers[it.idx] === it.ans ? perScore : 0), 0);
+}
+
+function submitQuiz() {
+  const answered = answeredCount();
+  if (answered < QUIZ.questions.length) {
+    if (!confirm(`还有 ${QUIZ.questions.length - answered} 题未作答，确定提交吗？`)) return;
+  }
+  graded = true;
+  const score = currentScore();
+  const correctMcq = mcqList.reduce((n, it) => n + (answers[it.idx] === it.ans ? 1 : 0), 0);
+  const wrongMcq = totalMcq - correctMcq;
+  const ratio = totalMcq ? score / fullScore : 1;
+  let verdict = ratio >= 0.85 ? "很稳，冲刺过关没问题 💪"
+              : ratio >= 0.6  ? "接近及格线，错题再刷一遍"
+              : "基础概念还需巩固，先看讲义再刷";
+  const subNote = (QUIZ.questions.length - totalMcq) > 0
+      ? `（另含 ${QUIZ.questions.length - totalMcq} 道主观题，已自行对照参考答案）` : "";
+
+  document.getElementById("resultBox").innerHTML = `
+    <div class="result fadein">
+      <div class="score">${score}<small> / ${fullScore} 分</small></div>
+      <div class="verdict">${verdict}</div>
+      <div class="sub">客观题答对 ${correctMcq} 题 · 答错 ${wrongMcq} 题 ${subNote}</div>
+      <div class="rows">
+        <div class="row good"><div class="n">${correctMcq}</div><div class="l">答对</div></div>
+        <div class="row bad"><div class="n">${wrongMcq}</div><div class="l">答错</div></div>
+      </div>
+    </div>`;
+  renderQuiz();
+  document.getElementById("resultBox").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetQuiz() {
+  answers = {};
+  graded = false;
+  revealed = {};
+  document.getElementById("resultBox").innerHTML = "";
+  renderQuiz();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+renderQuiz();
+</script>
+</body>
+</html>

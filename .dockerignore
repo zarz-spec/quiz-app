@@ -1,0 +1,8 @@
+venv/
+data/
+services/ocr
+services/ocr.swift
+__pycache__/
+*.pyc
+.git/
+*.log

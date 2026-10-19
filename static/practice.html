@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>总题练习 · 打乱刷题</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#1f2328;--muted:#6b7280;--line:#e5e7eb;
+    --brand:#c0392b;--brand-soft:#fdecea;--correct:#1a7f37;--correct-bg:#e8f5ec;
+    --wrong:#c0392b;--wrong-bg:#fdecea;--shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:760px;margin:0 auto;padding:20px 16px 80px;}
+  header.top{background:linear-gradient(135deg,#c0392b,#8e2418);color:#fff;border-radius:16px;
+    padding:22px 20px;box-shadow:var(--shadow);margin-bottom:16px;}
+  header.top h1{margin:0 0 4px;font-size:22px;font-weight:700;}
+  header.top .sub{opacity:.92;font-size:13px;}
+  .instant-toggle{margin-top:10px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);
+    color:#fff;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .statsbar{position:sticky;top:8px;z-index:20;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--shadow);padding:12px 16px;display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+  .statsbar .stat{text-align:center;flex:1;}
+  .statsbar .num{font-size:20px;font-weight:700;color:var(--brand);line-height:1.1;}
+  .statsbar .lbl{font-size:12px;color:var(--muted);}
+  .statsbar .bar-wrap{flex:2;min-width:90px;}
+  .statsbar .bar{height:8px;background:#eef0f3;border-radius:999px;overflow:hidden;}
+  .statsbar .bar i{display:block;height:100%;background:var(--brand);width:0;transition:width .25s;border-radius:999px;}
+  .statsbar .bar-txt{font-size:11px;color:var(--muted);margin-top:4px;}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+  .qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .qnum{flex:none;width:28px;height:28px;border-radius:8px;background:var(--brand-soft);color:var(--brand);
+    font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .qtext{font-size:15.5px;margin:0 0 12px;font-weight:500;}
+  .opts{display:flex;flex-direction:column;gap:8px;}
+  .opt{display:flex;align-items:flex-start;gap:10px;border:1.5px solid var(--line);border-radius:10px;
+    padding:9px 12px;cursor:pointer;user-select:none;transition:border-color .12s,background .12s;}
+  .opt:hover{border-color:#c9ccd1;background:#fafafa;}
+  .opt .key{flex:none;width:22px;height:22px;border-radius:6px;background:#eef0f3;color:var(--muted);
+    font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+  .opt .txt{font-size:14.5px;}
+  .opt.selected{border-color:var(--brand);background:var(--brand-soft);}
+  .opt.selected .key{background:var(--brand);color:#fff;}
+  .opt.correct{border-color:var(--correct);background:var(--correct-bg);}
+  .opt.correct .key{background:var(--correct);color:#fff;}
+  .opt.wrong{border-color:var(--wrong);background:var(--wrong-bg);}
+  .opt.wrong .key{background:var(--wrong);color:#fff;}
+  .opt.dim{opacity:.5;}
+  .explain{margin-top:10px;padding:10px 12px;border-radius:10px;background:#f6f8fa;border-left:3px solid var(--correct);
+    font-size:13px;color:#374151;display:none;}
+  .explain.wrong-x{border-left-color:var(--wrong);}
+  .explain b{color:var(--correct);}
+  .result{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 30px rgba(16,24,40,.14);
+    padding:20px;margin-bottom:16px;text-align:center;}
+  .result .score{font-size:44px;font-weight:800;color:var(--brand);line-height:1;}
+  .result .score small{font-size:18px;color:var(--muted);font-weight:600;}
+  .result .verdict{font-size:15px;margin:8px 0 4px;font-weight:600;}
+  .result .sub{color:var(--muted);font-size:13px;}
+  .result .rows{display:flex;gap:10px;margin-top:14px;}
+  .result .row{flex:1;background:#f6f8fa;border-radius:10px;padding:10px;}
+  .result .row .n{font-size:20px;font-weight:700;}
+  .result .row.good .n{color:var(--correct);}
+  .result .row.bad .n{color:var(--wrong);}
+  .result .row .l{font-size:12px;color:var(--muted);}
+  .actions{position:sticky;bottom:8px;z-index:20;display:flex;gap:10px;margin-top:16px;}
+  .btn{flex:1;border:none;border-radius:12px;padding:14px 12px;font-size:15px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:transform .05s;}
+  .btn:active{transform:scale(.98);}
+  .btn.primary{background:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(192,57,43,.28);}
+  .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);}
+  .loading{text-align:center;color:var(--muted);padding:50px 20px;font-size:15px;}
+  .fadein{animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 id="title">汇总刷题</h1>
+    <div class="sub" id="subtitle"></div>
+    <button class="instant-toggle" id="instantBtn" onclick="toggleInstant()">⚡ 即时判分：开</button>
+  </header>
+
+  <div class="statsbar">
+    <div class="stat"><div class="num" id="answeredNum">0</div><div class="lbl">已答</div></div>
+    <div class="stat"><div class="num" id="correctNum">-</div><div class="lbl">得分</div></div>
+    <div class="bar-wrap"><div class="bar"><i id="progressBar"></i></div>
+      <div class="bar-txt" id="progressTxt"></div></div>
+  </div>
+
+  <div id="resultBox"></div>
+  <div id="quiz"><div class="loading">正在加载并打乱题目…</div></div>
+
+  <div class="actions">
+    <button class="btn ghost" onclick="reshuffle()">🔀 重新打乱</button>
+    <button class="btn ghost" onclick="resetQuiz()">清空重做</button>
+    <button class="btn primary" onclick="submitQuiz()">提交判分</button>
+  </div>
+</div>
+
+<script>
+const LETTERS = "ABCDEFGH";
+const token = localStorage.getItem('token') || '';
+let QUIZ = [];
+let answers = {};
+let graded = false;
+let revealed = {};
+let instant = true;
+let subjectName = new URLSearchParams(location.search).get("subject") || "";
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+fetch("/api/practice?subject=" + encodeURIComponent(subjectName), {
+  headers: { 'Authorization': 'Bearer ' + token }
+}).then(r => { if (r.status === 401){ location.href = '/'; throw 0; } return r.json(); })
+  .then(j => {
+    const d = j.data || {};
+    QUIZ = shuffle(d.questions || []);
+    document.getElementById("title").textContent = subjectName + " · 汇总刷题";
+    document.getElementById("subtitle").textContent = "共 " + QUIZ.length + " 题 · 已自动打乱 · 可反复练习";
+    renderQuiz();
+  })
+  .catch(() => {
+    document.getElementById("quiz").innerHTML = '<div class="loading">加载失败，请从主页进入。</div>';
+  });
+
+function renderQuiz(){
+  const root = document.getElementById("quiz");
+  root.innerHTML = QUIZ.map((it, i) => {
+    const opts = it.opts.map((t, j) => {
+      const key = LETTERS[j];
+      let cls = "opt";
+      if (answers[i] === key) cls += " selected";
+      if (isShown(i)){
+        if (key === it.ans) cls += " correct";
+        else if (answers[i] === key) cls += " wrong";
+        else cls += " dim";
+      }
+      return `<div class="opt ${cls}" onclick="pick(${i},'${key}')"><span class="key">${key}</span><span class="txt">${t}</span></div>`;
+    }).join("");
+    const correct = answers[i] === it.ans;
+    const expCls = isShown(i) && !correct ? "explain wrong-x" : "explain";
+    const ansTip = isShown(i) ? `<b>正确答案 ${it.ans || "?"}</b>` : "";
+    const expTxt = (it.x && it.x !== "未识别答案") ? `<div style="margin-top:5px;">${esc(it.x)}</div>` : "";
+    return `<div class="qcard">
+      <div class="qhead"><span class="qnum">${i+1}</span><span class="qtext" style="margin:0;">${esc(it.q)}</span></div>
+      <div class="opts">${opts}</div>
+      <div class="${expCls}" ${isShown(i) ? 'style="display:block"' : ''}>${ansTip}${expTxt}</div>
+    </div>`;
+  }).join("");
+  updateStats();
+}
+function esc(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function isShown(i){ return graded || !!revealed[i]; }
+function pick(i, key){
+  if (graded || revealed[i]) return;
+  answers[i] = answers[i] === key ? undefined : key;
+  if (instant && answers[i]) revealed[i] = true;
+  renderQuiz();
+}
+function toggleInstant(){
+  instant = !instant;
+  document.getElementById("instantBtn").textContent = instant ? "⚡ 即时判分：开" : "⚡ 即时判分：关";
+  if (!instant) revealed = {};
+  renderQuiz();
+}
+function updateStats(){
+  const n = QUIZ.length, a = Object.keys(answers).length;
+  document.getElementById("answeredNum").textContent = a;
+  document.getElementById("progressBar").style.width = (n ? a/n*100 : 0) + "%";
+  document.getElementById("progressTxt").textContent = `完成度 ${a} / ${n}`;
+  const cn = document.getElementById("correctNum");
+  if (graded || instant){ const c = QUIZ.reduce((s,q,i)=>s+(answers[i]===q.ans?1:0),0); cn.textContent = c+"题"; }
+  else cn.textContent = "-";
+}
+function submitQuiz(){
+  const a = Object.keys(answers).length;
+  if (a < QUIZ.length && !confirm(`还有 ${QUIZ.length - a} 题未答，确定提交？`)) return;
+  graded = true;
+  const c = QUIZ.reduce((s,q,i)=>s+(answers[i]===q.ans&&q.ans?1:0),0);
+  const w = QUIZ.length - c;
+  const ratio = QUIZ.length ? c/QUIZ.length : 0;
+  const verdict = ratio >= .85 ? "很稳，冲刺过关没问题 💪" : ratio >= .6 ? "接近及格线，错题再刷一遍" : "基础还需巩固，先看讲义再刷";
+  document.getElementById("resultBox").innerHTML = `
+    <div class="result fadein">
+      <div class="score">${c}<small> / ${QUIZ.length} 题</small></div>
+      <div class="verdict">${verdict}</div>
+      <div class="sub">答对 ${c} 题 · 答错 ${w} 题</div>
+      <div class="rows"><div class="row good"><div class="n">${c}</div><div class="l">答对</div></div>
+      <div class="row bad"><div class="n">${w}</div><div class="l">答错</div></div></div>
+    </div>`;
+  renderQuiz();
+  document.getElementById("resultBox").scrollIntoView({ behavior: "smooth" });
+}
+function reshuffle(){
+  QUIZ = shuffle(QUIZ); answers = {}; graded = false; revealed = {};
+  document.getElementById("resultBox").innerHTML = "";
+  renderQuiz();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function resetQuiz(){
+  answers = {}; graded = false; revealed = {};
+  document.getElementById("resultBox").innerHTML = "";
+  renderQuiz();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+</script>
+</body>
+</html>
